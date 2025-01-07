@@ -462,7 +462,7 @@ function process_day6_input(){
     return [xx, yy-1, map];
 }
 
-//Day6 Part One    note : ans 5131. ref it when refactoring.
+//Day6 Part One   
 function day6_part_one(){
     var datas = process_day6_input();
     var map = datas[2];
