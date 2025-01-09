@@ -23,7 +23,7 @@ function process_day1_input(){
     return [l_arr, r_arr];
 }
 
-//DAY1 Part One//
+//DAY1 Part One
 function day1_part_one(){
     var input = process_day1_input();
     var l_arr = input[0];
@@ -36,7 +36,7 @@ function day1_part_one(){
     show_debug_message(result);
 }
 
-//DAY1 Part Two//
+//DAY1 Part Two
 function day1_part_two(){    
     var input = process_day1_input();
     var l_arr = input[0];
@@ -462,7 +462,7 @@ function process_day6_input(){
     return [xx, yy-1, map];
 }
 
-//Day6 Part One   
+//Day6 Part One 
 function day6_part_one(){
     var datas = process_day6_input();
     var map = datas[2];
@@ -499,14 +499,12 @@ function day6_part_one(){
     show_debug_message(count);
 }
 
-//Day6 Part Two
+//Day6 Part Two I don't like this brute force approach. it's too slow.
 function day6_part_two_brute_force1(){    
     var datas = process_day6_input();
     var count = 0;
     var dirs = [0, -1, 1, 0, 0, 1, -1, 0];
     
-    //I don't like this brute force approach. it's too slow.
-    //It might be Improved : place a new obtacle on pre-calculated path exclusively, it will be faster than this.
     for(var i = 0; i < array_length(datas[2]); i ++){
         for(var j = 1; j <= string_length(datas[2][0]); j ++) {
             var map = array_filter(datas[2], function(){ return true });
@@ -625,5 +623,139 @@ function day6_part_two_brute_force2(){
     show_debug_message(count);
 }
 
-day6_part_two_brute_force2();
+//Day7 Input
+function process_day7_input(){
+    var buf = buffer_load("aoc2024day7.txt");
+    var datas = string_trim(buffer_read(buf, buffer_text));
+    buffer_delete(buf);
+    
+    var nums = string_split(datas, "\n");
+    for(var i = 0; i < array_length(nums); i ++){
+        nums[i] = string_split(nums[i], ":");
+        nums[i][0] = int64(nums[i][0]); //Probably, doesn't work on 32-bit environments. but, who cares >:)
+        nums[i][1] = string_split(nums[i][1], " ", true);
+        for(var j = 0; j < array_length(nums[i][1]); j ++){
+            nums[i][1][j] = int64(nums[i][1][j]);
+        }
+    }
+    
+    return nums;
+}
+
+function generate_operators_recur(prev_arr, op_kind_num, target_op_num, output_arr){
+    if(array_length(prev_arr) == target_op_num){
+        array_push(output_arr, prev_arr);
+        return;
+    }
+    
+    for(var i = 0; i < op_kind_num; i ++){
+        var arr = variable_clone(prev_arr);
+        array_push(arr, i);
+        generate_operators_recur(arr, op_kind_num, target_op_num, output_arr);
+    }
+}
+
+//Day7 Part One
+function day7_part_one(){
+    var nums = process_day7_input();
+    var result = int64(0);
+    
+    var operator_dp = {};
+    
+    for(var i = 0; i < array_length(nums); i ++){
+        var target = nums[i][0];
+        var num_list = nums[i][1];
+        
+        var operator_table_array = operator_dp[$ array_length(num_list)-1] ?? []; //I'm not good at naming.
+        
+        if ( array_length(operator_table_array) == 0 ){
+            generate_operators_recur([], 2, array_length(num_list)-1, operator_table_array);
+            operator_dp[$ array_length(num_list)-1] = operator_table_array;
+        }
+        
+        for(var j = 0; j < array_length(operator_table_array); j ++){
+            var temp_result = num_list[0];
+            var op_table = operator_table_array[j];
+            for(var k = 0; k < array_length(op_table); k++){
+                var op = op_table[k];
+                switch(op) {
+                    case 0 : 
+                        temp_result += num_list[k+1];
+                    break;
+                    
+                    case 1 :
+                        temp_result *= num_list[k+1];
+                    break;
+                    
+                    default :
+                        //Unreachable
+                }
+            }
+            if (target == temp_result) {
+                result += target;
+                break;
+            }
+        }
+        
+    }
+    show_debug_message(result);
+}
+
+//Day7 Part Two
+function day7_part_two(){
+    var nums = process_day7_input();
+    var result = int64(0);
+    
+    var operator_dp = {};
+    
+    for(var i = 0; i < array_length(nums); i ++){
+        var target = nums[i][0];
+        var num_list = nums[i][1];
+        
+        var operator_table_array = operator_dp[$ array_length(num_list)-1] ?? []; //I'm not good at naming.
+        
+        if ( array_length(operator_table_array) == 0 ){
+            generate_operators_recur([], 3, array_length(num_list)-1, operator_table_array);
+            operator_dp[$ array_length(num_list)-1] = operator_table_array;
+        }
+        
+        for(var j = 0; j < array_length(operator_table_array); j ++){
+            var temp_result = num_list[0];
+            var op_table = operator_table_array[j];
+            for(var k = 0; k < array_length(op_table); k++){
+                var op = op_table[k];
+                var num = num_list[k+1];
+                switch(op) {
+                    case 0 : 
+                        temp_result += num;
+                    break;
+                    
+                    case 1 :
+                        temp_result *= num;
+                    break;
+                    
+                    case 2 :
+                        var count = 1;
+                        while(num > 9){
+                            num /= 10;
+                            count += 1;
+                        }
+                        temp_result = (temp_result * int64(power(10, count)) + num_list[k+1]);
+                    break;
+                    
+                    default :
+                        //Unreachable
+                }
+            }
+            
+            if (target == temp_result) {
+                result += target;
+                break;
+            }
+        }
+    }
+    show_debug_message(result);
+}
+
+day7_part_two();
 
